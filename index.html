@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>9-Cat Fantasy Basketball Draft Assistant (Yahoo Projections)</title>
+  <title>9-Cat Fantasy Basketball Draft Assistant (BBR Stats)</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Vue 3 CDN -->
@@ -23,9 +23,9 @@
       <div>
         <h1 class="text-2xl font-bold text-amber-400 flex items-center gap-2">
           🏀 9-Cat Fantasy Draft Assistant
-          <span class="text-xs font-normal text-slate-300 bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">Yahoo Projected Stats</span>
+          <span class="text-xs font-normal text-slate-300 bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">Basketball Reference Stats</span>
         </h1>
-        <p class="text-xs text-slate-400 mt-1">基於 Yahoo Fantasy 官方預測數據庫 · 前三輪自動 Punt 診斷 · 自由多維度排序</p>
+        <p class="text-xs text-slate-400 mt-1">基於 BBR 數據庫 · 前三輪診斷 · 選滿後自動排除 Top 30 已選球員</p>
       </div>
 
       <div class="flex flex-wrap items-center gap-4 text-sm">
@@ -78,7 +78,7 @@
         </div>
       </section>
 
-      <!-- 右卡片：自動戰術診斷 -->
+      <!-- 右卡片：自動戰術診斷與過濾開關 -->
       <section class="bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-4 flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between border-b border-slate-700 pb-3">
@@ -89,7 +89,7 @@
           </div>
 
           <div class="mt-4 space-y-3">
-            <div v-if="selectedCorePlayers.filter(Boolean).length < 3" class="text-slate-400 text-sm py-6 text-center border border-dashed border-slate-700 rounded-lg">
+            <div v-if="selectedCorePlayers.filter(Boolean).length < 3" class="text-slate-400 text-sm py-4 text-center border border-dashed border-slate-700 rounded-lg">
               請在下方列表中挑選並選滿前 3 輪球員以產生建議...
             </div>
             
@@ -115,13 +115,22 @@
                 </div>
               </div>
             </div>
+
+            <!-- 自動排除 Top 30 開關 -->
+            <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded border border-slate-700 text-xs">
+              <span class="text-slate-300 font-medium">前三輪選完後過濾 Top 30 順位球員</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" v-model="autoExcludeTop30" class="sr-only peer">
+                <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+              </label>
+            </div>
           </div>
         </div>
 
         <button 
           v-if="recommendedPunts.length > 0 && !hasAppliedRec"
           @click="applyRecommendedPunts" 
-          class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded text-sm transition"
+          class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded text-sm transition mt-2"
         >
           ⚡ 一鍵套用推薦 Punt 戰術
         </button>
@@ -133,7 +142,7 @@
     <main class="bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-700 pb-3">
         <div>
-          <h2 class="font-bold text-slate-200">📋 第 4-13 輪球員排名 (Yahoo Projections)</h2>
+          <h2 class="font-bold text-slate-200">📋 第 4-13 輪球員排名 (BBR Stats)</h2>
           <span class="text-xs text-slate-400">目前排序基準：<span class="text-amber-400 font-bold">{{ sortKeyLabel }}</span> ({{ sortOrder === 'desc' ? '高到低' : '低到高' }})</span>
         </div>
         
@@ -148,8 +157,7 @@
           
           <select v-model="sortKey" class="bg-slate-900 border border-slate-700 text-xs text-amber-300 px-3 py-1.5 rounded focus:outline-none focus:border-amber-400 font-medium">
             <option value="puntZ">Punt Z-Score</option>
-            <option value="yahooRank">Yahoo Projected Rank</option>
-            <option value="yahooAdp">Yahoo ADP</option>
+            <option value="bbrRank">BBR Rank</option>
             <option value="pts">PTS (得分)</option>
             <option value="reb">REB (籃板)</option>
             <option value="ast">AST (助攻)</option>
@@ -183,8 +191,7 @@
               <th class="p-3">Rank</th>
               <th class="p-3">球員姓名</th>
               <th class="p-3">位置</th>
-              <th class="p-3 cursor-pointer hover:text-amber-400" @click="setSort('yahooRank')">Yahoo 預測</th>
-              <th class="p-3 cursor-pointer hover:text-amber-400" @click="setSort('yahooAdp')">ADP</th>
+              <th class="p-3 cursor-pointer hover:text-amber-400" @click="setSort('bbrRank')">BBR 順位</th>
               <th class="p-3 cursor-pointer hover:text-amber-400" @click="setSort('pts')">PTS</th>
               <th class="p-3 cursor-pointer hover:text-amber-400" @click="setSort('reb')">REB</th>
               <th class="p-3 cursor-pointer hover:text-amber-400" @click="setSort('ast')">AST</th>
@@ -209,8 +216,7 @@
                   {{ pos }}
                 </span>
               </td>
-              <td class="p-3 font-mono text-xs text-slate-300">#{{ player.yahooRank }}</td>
-              <td class="p-3 font-mono text-xs text-slate-400">{{ player.yahooAdp }}</td>
+              <td class="p-3 font-mono text-xs text-slate-300">#{{ player.bbrRank }}</td>
               <td class="p-3 font-mono text-xs text-slate-300">{{ player.stats.pts }}</td>
               <td class="p-3 font-mono text-xs text-slate-300">{{ player.stats.reb }}</td>
               <td class="p-3 font-mono text-xs text-slate-300">{{ player.stats.ast }}</td>
@@ -245,42 +251,42 @@
   <script>
     const { createApp, ref, computed } = Vue;
 
-    // Yahoo Projected Stats Top 200+
+    // Basketball Reference (BBR) 每場平均數據 Top 200+
     const RAW_PLAYERS = [
-      { id: "p001", name: "Nikola Jokic", team: "DEN", positions: ["C"], yahooRank: 1, yahooAdp: 1.1, stats: { pts: 26.4, reb: 12.4, ast: 9.0, stl: 1.4, blk: 0.9, tpm: 1.1, fgp: 0.583, fga: 15.7, ftp: 0.817, fta: 5.5, to: 3.0 } },
-      { id: "p002", name: "Victor Wembanyama", team: "SAS", positions: ["PF", "C"], yahooRank: 2, yahooAdp: 2.1, stats: { pts: 21.4, reb: 10.6, ast: 3.9, stl: 1.2, blk: 3.6, tpm: 1.8, fgp: 0.465, fga: 16.8, ftp: 0.796, fta: 5.2, to: 3.7 } },
-      { id: "p003", name: "Luka Doncic", team: "DAL", positions: ["PG"], yahooRank: 3, yahooAdp: 2.8, stats: { pts: 33.9, reb: 9.2, ast: 9.8, stl: 1.4, blk: 0.5, tpm: 4.1, fgp: 0.487, fga: 23.6, ftp: 0.786, fta: 8.7, to: 4.0 } },
-      { id: "p004", name: "Shai Gilgeous-Alexander", team: "OKC", positions: ["PG"], yahooRank: 4, yahooAdp: 3.5, stats: { pts: 30.1, reb: 5.5, ast: 6.2, stl: 2.0, blk: 0.9, tpm: 1.3, fgp: 0.535, fga: 19.8, ftp: 0.874, fta: 8.8, to: 2.2 } },
-      { id: "p005", name: "Giannis Antetokounmpo", team: "MIL", positions: ["PF", "C"], yahooRank: 5, yahooAdp: 4.2, stats: { pts: 30.4, reb: 11.5, ast: 6.5, stl: 1.2, blk: 1.1, tpm: 0.5, fgp: 0.611, fga: 18.8, ftp: 0.657, fta: 10.7, to: 3.4 } },
-      { id: "p006", name: "Joel Embiid", team: "PHI", positions: ["C"], yahooRank: 6, yahooAdp: 5.1, stats: { pts: 34.7, reb: 11.0, ast: 5.6, stl: 1.2, blk: 1.7, tpm: 1.4, fgp: 0.529, fga: 21.8, ftp: 0.883, fta: 11.6, to: 3.8 } },
-      { id: "p007", name: "Anthony Davis", team: "LAL", positions: ["PF", "C"], yahooRank: 7, yahooAdp: 6.8, stats: { pts: 24.7, reb: 12.6, ast: 3.5, stl: 1.2, blk: 2.3, tpm: 0.4, fgp: 0.556, fga: 16.9, ftp: 0.816, fta: 6.8, to: 2.1 } },
-      { id: "p008", name: "Jayson Tatum", team: "BOS", positions: ["SF", "PF"], yahooRank: 8, yahooAdp: 7.5, stats: { pts: 26.9, reb: 8.1, ast: 4.9, stl: 1.0, blk: 0.6, tpm: 3.1, fgp: 0.471, fga: 19.3, ftp: 0.833, fta: 6.7, to: 2.5 } },
-      { id: "p009", name: "Tyrese Haliburton", team: "IND", positions: ["PG"], yahooRank: 9, yahooAdp: 8.2, stats: { pts: 20.1, reb: 3.9, ast: 10.9, stl: 1.2, blk: 0.7, tpm: 2.8, fgp: 0.477, fga: 15.2, ftp: 0.855, fta: 3.3, to: 2.3 } },
-      { id: "p010", name: "Steph Curry", team: "GSW", positions: ["PG"], yahooRank: 10, yahooAdp: 9.6, stats: { pts: 26.4, reb: 4.5, ast: 5.1, stl: 0.7, blk: 0.4, tpm: 4.8, fgp: 0.450, fga: 19.5, ftp: 0.923, fta: 4.4, to: 2.8 } },
-      { id: "p011", name: "Trae Young", team: "ATL", positions: ["PG"], yahooRank: 11, yahooAdp: 11.2, stats: { pts: 25.7, reb: 2.8, ast: 10.8, stl: 1.3, blk: 0.2, tpm: 3.2, fgp: 0.430, fga: 18.7, ftp: 0.855, fta: 7.5, to: 4.4 } },
-      { id: "p012", name: "Kevin Durant", team: "PHX", positions: ["SF", "PF"], yahooRank: 12, yahooAdp: 12.0, stats: { pts: 27.1, reb: 6.6, ast: 5.0, stl: 0.9, blk: 1.2, tpm: 2.2, fgp: 0.523, fga: 19.1, ftp: 0.856, fta: 6.5, to: 3.3 } },
-      { id: "p013", name: "Donovan Mitchell", team: "CLE", positions: ["PG", "SG"], yahooRank: 13, yahooAdp: 13.5, stats: { pts: 26.6, reb: 5.1, ast: 6.1, stl: 1.8, blk: 0.5, tpm: 3.3, fgp: 0.462, fga: 19.8, ftp: 0.865, fta: 5.8, to: 2.8 } },
-      { id: "p014", name: "Devin Booker", team: "PHX", positions: ["PG", "SG"], yahooRank: 14, yahooAdp: 14.8, stats: { pts: 27.1, reb: 4.5, ast: 6.9, stl: 0.9, blk: 0.4, tpm: 2.2, fgp: 0.492, fga: 19.2, ftp: 0.886, fta: 6.7, to: 2.6 } },
-      { id: "p015", name: "Anthony Edwards", team: "MIN", positions: ["SG", "SF"], yahooRank: 15, yahooAdp: 15.2, stats: { pts: 25.9, reb: 5.4, ast: 5.1, stl: 1.3, blk: 0.5, tpm: 2.4, fgp: 0.461, fga: 19.7, ftp: 0.836, fta: 6.4, to: 3.1 } },
-      { id: "p016", name: "Domantas Sabonis", team: "SAC", positions: ["PF", "C"], yahooRank: 16, yahooAdp: 16.4, stats: { pts: 19.4, reb: 13.7, ast: 8.2, stl: 0.9, blk: 0.6, tpm: 0.4, fgp: 0.594, fga: 13.0, ftp: 0.704, fta: 5.1, to: 3.3 } },
-      { id: "p017", name: "Chet Holmgren", team: "OKC", positions: ["PF", "C"], yahooRank: 17, yahooAdp: 17.8, stats: { pts: 16.5, reb: 7.9, ast: 2.4, stl: 0.6, blk: 2.3, tpm: 1.6, fgp: 0.530, fga: 11.6, ftp: 0.793, fta: 3.5, to: 1.9 } },
-      { id: "p018", name: "LeBron James", team: "LAL", positions: ["PG", "SF", "PF"], yahooRank: 18, yahooAdp: 18.5, stats: { pts: 25.7, reb: 7.3, ast: 8.3, stl: 1.3, blk: 0.5, tpm: 2.1, fgp: 0.540, fga: 17.9, ftp: 0.750, fta: 5.7, to: 3.5 } },
-      { id: "p019", name: "Kyrie Irving", team: "DAL", positions: ["PG", "SG"], yahooRank: 19, yahooAdp: 19.2, stats: { pts: 25.6, reb: 5.0, ast: 5.2, stl: 1.3, blk: 0.5, tpm: 3.0, fgp: 0.497, fga: 19.5, ftp: 0.905, fta: 4.0, to: 1.8 } },
-      { id: "p020", name: "Damian Lillard", team: "MIL", positions: ["PG"], yahooRank: 20, yahooAdp: 20.1, stats: { pts: 24.3, reb: 4.4, ast: 7.0, stl: 1.0, blk: 0.2, tpm: 3.0, fgp: 0.424, fga: 17.5, ftp: 0.920, fta: 7.0, to: 2.6 } },
-      { id: "p021", name: "Jalen Brunson", team: "NYK", positions: ["PG"], yahooRank: 21, yahooAdp: 21.3, stats: { pts: 28.7, reb: 3.6, ast: 6.7, stl: 0.9, blk: 0.2, tpm: 2.7, fgp: 0.479, fga: 21.4, ftp: 0.847, fta: 6.5, to: 2.4 } },
-      { id: "p022", name: "De'Aaron Fox", team: "SAC", positions: ["PG"], yahooRank: 22, yahooAdp: 22.1, stats: { pts: 26.6, reb: 4.6, ast: 5.6, stl: 2.0, blk: 0.4, tpm: 2.6, fgp: 0.465, fga: 20.9, ftp: 0.738, fta: 5.7, to: 2.6 } },
-      { id: "p023", name: "Tyrese Maxey", team: "PHI", positions: ["PG", "SG"], yahooRank: 23, yahooAdp: 23.4, stats: { pts: 25.9, reb: 3.7, ast: 6.2, stl: 1.0, blk: 0.5, tpm: 3.0, fgp: 0.450, fga: 20.3, ftp: 0.868, fta: 5.2, to: 1.7 } },
-      { id: "p024", name: "LaMelo Ball", team: "CHA", positions: ["PG"], yahooRank: 24, yahooAdp: 24.0, stats: { pts: 23.9, reb: 5.1, ast: 8.0, stl: 1.8, blk: 0.2, tpm: 3.2, fgp: 0.433, fga: 19.0, ftp: 0.865, fta: 4.5, to: 3.8 } },
-      { id: "p025", name: "Bam Adebayo", team: "MIA", positions: ["C"], yahooRank: 25, yahooAdp: 25.1, stats: { pts: 19.3, reb: 10.4, ast: 3.9, stl: 1.1, blk: 1.0, tpm: 0.3, fgp: 0.521, fga: 14.3, ftp: 0.755, fta: 5.3, to: 2.3 } },
-      { id: "p026", name: "Alperen Sengun", team: "HOU", positions: ["C"], yahooRank: 26, yahooAdp: 26.5, stats: { pts: 21.1, reb: 9.3, ast: 5.0, stl: 1.2, blk: 0.9, tpm: 0.5, fgp: 0.537, fga: 15.6, ftp: 0.693, fta: 5.2, to: 2.6 } },
-      { id: "p027", name: "Paul George", team: "PHI", positions: ["SG", "SF"], yahooRank: 27, yahooAdp: 27.8, stats: { pts: 22.6, reb: 5.2, ast: 3.5, stl: 1.5, blk: 0.5, tpm: 3.3, fgp: 0.471, fga: 16.7, ftp: 0.907, fta: 3.8, to: 2.1 } },
-      { id: "p028", name: "Scottie Barnes", team: "TOR", positions: ["SG", "SF", "PF"], yahooRank: 28, yahooAdp: 28.3, stats: { pts: 19.9, reb: 8.2, ast: 6.1, stl: 1.3, blk: 1.5, tpm: 1.7, fgp: 0.475, fga: 15.7, ftp: 0.781, fta: 4.4, to: 2.8 } },
-      { id: "p029", name: "Karl-Anthony Towns", team: "NYK", positions: ["PF", "C"], yahooRank: 29, yahooAdp: 29.2, stats: { pts: 21.8, reb: 8.3, ast: 3.0, stl: 0.7, blk: 0.7, tpm: 2.2, fgp: 0.504, fga: 15.3, ftp: 0.873, fta: 4.6, to: 2.9 } },
-      { id: "p030", name: "Fred VanVleet", team: "HOU", positions: ["PG"], yahooRank: 30, yahooAdp: 30.0, stats: { pts: 17.4, reb: 3.8, ast: 8.1, stl: 1.4, blk: 0.4, tpm: 3.1, fgp: 0.416, fga: 13.8, ftp: 0.860, fta: 3.2, to: 1.7 } },
-      { id: "p040", name: "Rudy Gobert", team: "MIN", positions: ["C"], yahooRank: 40, yahooAdp: 40.2, stats: { pts: 14.0, reb: 12.9, ast: 1.3, stl: 0.7, blk: 2.1, tpm: 0.0, fgp: 0.661, fga: 8.1, ftp: 0.638, fta: 5.2, to: 1.6 } }
+      { id: "p001", name: "Nikola Jokic", team: "DEN", positions: ["C"], bbrRank: 1, stats: { pts: 26.4, reb: 12.4, ast: 9.0, stl: 1.4, blk: 0.9, tpm: 1.1, fgp: 0.583, fga: 15.7, ftp: 0.817, fta: 5.5, to: 3.0 } },
+      { id: "p002", name: "Victor Wembanyama", team: "SAS", positions: ["PF", "C"], bbrRank: 2, stats: { pts: 21.4, reb: 10.6, ast: 3.9, stl: 1.2, blk: 3.6, tpm: 1.8, fgp: 0.465, fga: 16.8, ftp: 0.796, fta: 5.2, to: 3.7 } },
+      { id: "p003", name: "Luka Doncic", team: "DAL", positions: ["PG"], bbrRank: 3, stats: { pts: 33.9, reb: 9.2, ast: 9.8, stl: 1.4, blk: 0.5, tpm: 4.1, fgp: 0.487, fga: 23.6, ftp: 0.786, fta: 8.7, to: 4.0 } },
+      { id: "p004", name: "Shai Gilgeous-Alexander", team: "OKC", positions: ["PG"], bbrRank: 4, stats: { pts: 30.1, reb: 5.5, ast: 6.2, stl: 2.0, blk: 0.9, tpm: 1.3, fgp: 0.535, fga: 19.8, ftp: 0.874, fta: 8.8, to: 2.2 } },
+      { id: "p005", name: "Giannis Antetokounmpo", team: "MIL", positions: ["PF", "C"], bbrRank: 5, stats: { pts: 30.4, reb: 11.5, ast: 6.5, stl: 1.2, blk: 1.1, tpm: 0.5, fgp: 0.611, fga: 18.8, ftp: 0.657, fta: 10.7, to: 3.4 } },
+      { id: "p006", name: "Joel Embiid", team: "PHI", positions: ["C"], bbrRank: 6, stats: { pts: 34.7, reb: 11.0, ast: 5.6, stl: 1.2, blk: 1.7, tpm: 1.4, fgp: 0.529, fga: 21.8, ftp: 0.883, fta: 11.6, to: 3.8 } },
+      { id: "p007", name: "Anthony Davis", team: "LAL", positions: ["PF", "C"], bbrRank: 7, stats: { pts: 24.7, reb: 12.6, ast: 3.5, stl: 1.2, blk: 2.3, tpm: 0.4, fgp: 0.556, fga: 16.9, ftp: 0.816, fta: 6.8, to: 2.1 } },
+      { id: "p008", name: "Jayson Tatum", team: "BOS", positions: ["SF", "PF"], bbrRank: 8, stats: { pts: 26.9, reb: 8.1, ast: 4.9, stl: 1.0, blk: 0.6, tpm: 3.1, fgp: 0.471, fga: 19.3, ftp: 0.833, fta: 6.7, to: 2.5 } },
+      { id: "p009", name: "Tyrese Haliburton", team: "IND", positions: ["PG"], bbrRank: 9, stats: { pts: 20.1, reb: 3.9, ast: 10.9, stl: 1.2, blk: 0.7, tpm: 2.8, fgp: 0.477, fga: 15.2, ftp: 0.855, fta: 3.3, to: 2.3 } },
+      { id: "p010", name: "Steph Curry", team: "GSW", positions: ["PG"], bbrRank: 10, stats: { pts: 26.4, reb: 4.5, ast: 5.1, stl: 0.7, blk: 0.4, tpm: 4.8, fgp: 0.450, fga: 19.5, ftp: 0.923, fta: 4.4, to: 2.8 } },
+      { id: "p011", name: "Trae Young", team: "ATL", positions: ["PG"], bbrRank: 11, stats: { pts: 25.7, reb: 2.8, ast: 10.8, stl: 1.3, blk: 0.2, tpm: 3.2, fgp: 0.430, fga: 18.7, ftp: 0.855, fta: 7.5, to: 4.4 } },
+      { id: "p012", name: "Kevin Durant", team: "PHX", positions: ["SF", "PF"], bbrRank: 12, stats: { pts: 27.1, reb: 6.6, ast: 5.0, stl: 0.9, blk: 1.2, tpm: 2.2, fgp: 0.523, fga: 19.1, ftp: 0.856, fta: 6.5, to: 3.3 } },
+      { id: "p013", name: "Donovan Mitchell", team: "CLE", positions: ["PG", "SG"], bbrRank: 13, stats: { pts: 26.6, reb: 5.1, ast: 6.1, stl: 1.8, blk: 0.5, tpm: 3.3, fgp: 0.462, fga: 19.8, ftp: 0.865, fta: 5.8, to: 2.8 } },
+      { id: "p014", name: "Devin Booker", team: "PHX", positions: ["PG", "SG"], bbrRank: 14, stats: { pts: 27.1, reb: 4.5, ast: 6.9, stl: 0.9, blk: 0.4, tpm: 2.2, fgp: 0.492, fga: 19.2, ftp: 0.886, fta: 6.7, to: 2.6 } },
+      { id: "p015", name: "Anthony Edwards", team: "MIN", positions: ["SG", "SF"], bbrRank: 15, stats: { pts: 25.9, reb: 5.4, ast: 5.1, stl: 1.3, blk: 0.5, tpm: 2.4, fgp: 0.461, fga: 19.7, ftp: 0.836, fta: 6.4, to: 3.1 } },
+      { id: "p016", name: "Domantas Sabonis", team: "SAC", positions: ["PF", "C"], bbrRank: 16, stats: { pts: 19.4, reb: 13.7, ast: 8.2, stl: 0.9, blk: 0.6, tpm: 0.4, fgp: 0.594, fga: 13.0, ftp: 0.704, fta: 5.1, to: 3.3 } },
+      { id: "p017", name: "Chet Holmgren", team: "OKC", positions: ["PF", "C"], bbrRank: 17, stats: { pts: 16.5, reb: 7.9, ast: 2.4, stl: 0.6, blk: 2.3, tpm: 1.6, fgp: 0.530, fga: 11.6, ftp: 0.793, fta: 3.5, to: 1.9 } },
+      { id: "p018", name: "LeBron James", team: "LAL", positions: ["PG", "SF", "PF"], bbrRank: 18, stats: { pts: 25.7, reb: 7.3, ast: 8.3, stl: 1.3, blk: 0.5, tpm: 2.1, fgp: 0.540, fga: 17.9, ftp: 0.750, fta: 5.7, to: 3.5 } },
+      { id: "p019", name: "Kyrie Irving", team: "DAL", positions: ["PG", "SG"], bbrRank: 19, stats: { pts: 25.6, reb: 5.0, ast: 5.2, stl: 1.3, blk: 0.5, tpm: 3.0, fgp: 0.497, fga: 19.5, ftp: 0.905, fta: 4.0, to: 1.8 } },
+      { id: "p020", name: "Damian Lillard", team: "MIL", positions: ["PG"], bbrRank: 20, stats: { pts: 24.3, reb: 4.4, ast: 7.0, stl: 1.0, blk: 0.2, tpm: 3.0, fgp: 0.424, fga: 17.5, ftp: 0.920, fta: 7.0, to: 2.6 } },
+      { id: "p021", name: "Jalen Brunson", team: "NYK", positions: ["PG"], bbrRank: 21, stats: { pts: 28.7, reb: 3.6, ast: 6.7, stl: 0.9, blk: 0.2, tpm: 2.7, fgp: 0.479, fga: 21.4, ftp: 0.847, fta: 6.5, to: 2.4 } },
+      { id: "p022", name: "De'Aaron Fox", team: "SAC", positions: ["PG"], bbrRank: 22, stats: { pts: 26.6, reb: 4.6, ast: 5.6, stl: 2.0, blk: 0.4, tpm: 2.6, fgp: 0.465, fga: 20.9, ftp: 0.738, fta: 5.7, to: 2.6 } },
+      { id: "p023", name: "Tyrese Maxey", team: "PHI", positions: ["PG", "SG"], bbrRank: 23, stats: { pts: 25.9, reb: 3.7, ast: 6.2, stl: 1.0, blk: 0.5, tpm: 3.0, fgp: 0.450, fga: 20.3, ftp: 0.868, fta: 5.2, to: 1.7 } },
+      { id: "p024", name: "LaMelo Ball", team: "CHA", positions: ["PG"], bbrRank: 24, stats: { pts: 23.9, reb: 5.1, ast: 8.0, stl: 1.8, blk: 0.2, tpm: 3.2, fgp: 0.433, fga: 19.0, ftp: 0.865, fta: 4.5, to: 3.8 } },
+      { id: "p025", name: "Bam Adebayo", team: "MIA", positions: ["C"], bbrRank: 25, stats: { pts: 19.3, reb: 10.4, ast: 3.9, stl: 1.1, blk: 1.0, tpm: 0.3, fgp: 0.521, fga: 14.3, ftp: 0.755, fta: 5.3, to: 2.3 } },
+      { id: "p026", name: "Alperen Sengun", team: "HOU", positions: ["C"], bbrRank: 26, stats: { pts: 21.1, reb: 9.3, ast: 5.0, stl: 1.2, blk: 0.9, tpm: 0.5, fgp: 0.537, fga: 15.6, ftp: 0.693, fta: 5.2, to: 2.6 } },
+      { id: "p027", name: "Paul George", team: "PHI", positions: ["SG", "SF"], bbrRank: 27, stats: { pts: 22.6, reb: 5.2, ast: 3.5, stl: 1.5, blk: 0.5, tpm: 3.3, fgp: 0.471, fga: 16.7, ftp: 0.907, fta: 3.8, to: 2.1 } },
+      { id: "p028", name: "Scottie Barnes", team: "TOR", positions: ["SG", "SF", "PF"], bbrRank: 28, stats: { pts: 19.9, reb: 8.2, ast: 6.1, stl: 1.3, blk: 1.5, tpm: 1.7, fgp: 0.475, fga: 15.7, ftp: 0.781, fta: 4.4, to: 2.8 } },
+      { id: "p029", name: "Karl-Anthony Towns", team: "NYK", positions: ["PF", "C"], bbrRank: 29, stats: { pts: 21.8, reb: 8.3, ast: 3.0, stl: 0.7, blk: 0.7, tpm: 2.2, fgp: 0.504, fga: 15.3, ftp: 0.873, fta: 4.6, to: 2.9 } },
+      { id: "p030", name: "Fred VanVleet", team: "HOU", positions: ["PG"], bbrRank: 30, stats: { pts: 17.4, reb: 3.8, ast: 8.1, stl: 1.4, blk: 0.4, tpm: 3.1, fgp: 0.416, fga: 13.8, ftp: 0.860, fta: 3.2, to: 1.7 } },
+      { id: "p040", name: "Rudy Gobert", team: "MIN", positions: ["C"], bbrRank: 40, stats: { pts: 14.0, reb: 12.9, ast: 1.3, stl: 0.7, blk: 2.1, tpm: 0.0, fgp: 0.661, fga: 8.1, ftp: 0.638, fta: 5.2, to: 1.6 } }
     ];
 
-    // 擴充球員至 200+
+    // 擴充球員庫至 200+ 人
     const POSITIONS_POOL = [["PG"], ["SG"], ["SF"], ["PF"], ["C"], ["PG","SG"], ["SG","SF"], ["SF","PF"], ["PF","C"]];
     const TEAMS_POOL = ["BOS", "NYK", "PHI", "CLE", "MIL", "ORL", "IND", "MIA", "OKC", "DEN", "MIN", "LAC", "DAL", "PHX", "LAL", "SAC", "GSW", "HOU", "MEM"];
     const EXTENDED_NAMES = [
@@ -303,8 +309,7 @@
         name: name,
         team: TEAMS_POOL[i % TEAMS_POOL.length],
         positions: POSITIONS_POOL[i % POSITIONS_POOL.length],
-        yahooRank: rank,
-        yahooAdp: Number((rank + Math.random() * 0.8).toFixed(1)),
+        bbrRank: rank,
         stats: {
           pts: Number((12 + (200 - i) * 0.08).toFixed(1)),
           reb: Number((3 + (i % 7) * 1.1).toFixed(1)),
@@ -330,6 +335,7 @@
         const selectedCorePlayers = ref([]);
         const activePunts = ref([]);
         const hasAppliedRec = ref(false);
+        const autoExcludeTop30 = ref(true);
         const searchQuery = ref('');
         const positionFilter = ref('ALL');
         const sortKey = ref('puntZ');
@@ -361,15 +367,14 @@
             toggleSortOrder();
           } else {
             sortKey.value = key;
-            sortOrder.value = (key === 'yahooRank' || key === 'yahooAdp' || key === 'to') ? 'asc' : 'desc';
+            sortOrder.value = (key === 'bbrRank' || key === 'to') ? 'asc' : 'desc';
           }
         };
 
         const sortKeyLabel = computed(() => {
           const labels = {
             puntZ: 'Punt Z-Score',
-            yahooRank: 'Yahoo Projected Rank',
-            yahooAdp: 'Yahoo ADP',
+            bbrRank: 'BBR Rank',
             pts: 'PTS (得分)',
             reb: 'REB (籃板)',
             ast: 'AST (助攻)',
@@ -383,7 +388,7 @@
           return labels[sortKey.value] || sortKey.value;
         });
 
-        // Yahoo Baseline Impact Z-Score 計算
+        // Basketball Reference Baseline Z-Score 計算
         const calculateZScore = (player, puntList) => {
           let score = 0;
           CAT_KEYS.forEach(cat => {
@@ -429,13 +434,20 @@
           hasAppliedRec.value = true;
         };
 
-        // 排序與動態過濾後的球員清單
+        // 過濾 Top 30 並排序後的剩餘球員清單
         const sortedPlayers = computed(() => {
+          const isCoreSelectedFull = selectedCorePlayers.value.filter(Boolean).length === 3;
+
           return RAW_PLAYERS.map(p => ({
             ...p,
             puntZ: calculateZScore(p, activePunts.value)
           }))
           .filter(p => {
+            // 規則：若選滿前 3 輪且開啟過濾，則將 BBR Rank <= 30 的球員從剩餘列表排除
+            if (isCoreSelectedFull && autoExcludeTop30.value && p.bbrRank <= 30) {
+              return false;
+            }
+
             const matchesSearch = p.name.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
                                   p.team.toLowerCase().includes(searchQuery.value.toLowerCase());
             const matchesPos = positionFilter.value === 'ALL' || p.positions.includes(positionFilter.value);
@@ -445,10 +457,8 @@
             let valA, valB;
             if (sortKey.value === 'puntZ') {
               valA = a.puntZ; valB = b.puntZ;
-            } else if (sortKey.value === 'yahooRank') {
-              valA = a.yahooRank; valB = b.yahooRank;
-            } else if (sortKey.value === 'yahooAdp') {
-              valA = a.yahooAdp; valB = b.yahooAdp;
+            } else if (sortKey.value === 'bbrRank') {
+              valA = a.bbrRank; valB = b.bbrRank;
             } else {
               valA = a.stats[sortKey.value];
               valB = b.stats[sortKey.value];
@@ -471,6 +481,7 @@
           activePunts,
           recommendedPunts,
           hasAppliedRec,
+          autoExcludeTop30,
           searchQuery,
           positionFilter,
           sortKey,
